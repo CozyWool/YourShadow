@@ -6,7 +6,6 @@ public class VideoEventTrigger : MonoBehaviour
 {
     [SerializeField] private VideoPlayer videoPlayer;
 
-    // Твое событие, сюда в инспекторе можно накинуть функции
     public UnityEvent onVideoFinished;
 
     void Start()
@@ -16,16 +15,12 @@ public class VideoEventTrigger : MonoBehaviour
             videoPlayer = GetComponent<VideoPlayer>();
         }
 
-        // Подписка на событие конца видео
         videoPlayer.loopPointReached += VideoEnded;
-
-        // Если видео весит много, лучше запустить подготовку
         videoPlayer.Prepare();
     }
 
     void OnDestroy()
     {
-        // Отписка, чтобы не было утечек памяти
         if (videoPlayer != null)
         {
             videoPlayer.loopPointReached -= VideoEnded;
@@ -34,8 +29,6 @@ public class VideoEventTrigger : MonoBehaviour
 
     private void VideoEnded(VideoPlayer source)
     {
-
-        // Запуск твоего события
         onVideoFinished?.Invoke();
     }
 }

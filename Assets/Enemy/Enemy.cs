@@ -5,7 +5,6 @@ using Pathfinding;
 
 public class Enemy : MonoBehaviour
 {
-
     private static List<Enemy> enemyList;
 
     public static Enemy GetClosestEnemy(Vector3 position, float range)
@@ -19,36 +18,39 @@ public class Enemy : MonoBehaviour
         for (int i = 0; i < enemyList.Count; i++)
         {
             Enemy testEnemy = enemyList[i];
-            if (Vector3.Distance(position,testEnemy.transform.position) > range)
+            if (Vector3.Distance(position, testEnemy.transform.position) > range)
             {
-                continue; 
+                continue;
             }
+
             if (closestEnemy == null)
             {
                 closestEnemy = testEnemy;
             }
             else
             {
-                if (Vector3.Distance(position, testEnemy.transform.position) < Vector3.Distance(position,closestEnemy.transform.position))
+                if (Vector3.Distance(position, testEnemy.transform.position) <
+                    Vector3.Distance(position, closestEnemy.transform.position))
                 {
                     closestEnemy = testEnemy;
                 }
             }
         }
+
         return closestEnemy;
     }
+
     public Room roomWhereIsEnemy;
     EnemyGFX gfx;
     private AIPath aIPath;
     public EllisController2D ellis;
     public int health = 100;
-    public bool isAttacking, playernotnull,isMiniBoss;
+    public bool isAttacking, playernotnull, isMiniBoss;
     public PlayerAim playerAim;
     int EllisQ;
     float timer = 2f;
 
-    public GameObject dieSprite, spriteKirisi,swordSprite;
-
+    public GameObject dieSprite, spriteKirisi, swordSprite;
 
 
     private void Start()
@@ -62,22 +64,21 @@ public class Enemy : MonoBehaviour
         enemyList.Add(this);
         aIPath = GetComponent<AIPath>();
     }
+
     public void TakeDamage(int damage)
-    { 
-       // gfx.anim.SetTrigger("Die");
+    {
+        // gfx.anim.SetTrigger("Die");
         health -= damage;
         if (health <= 0)
         {
             Die();
         }
-    
     }
-    
+
     private void OnTriggerEnter2D(Collider2D reload)
     {
         if (reload.gameObject.CompareTag("Weapon"))
         {
-           
             if (!playerAim.hitted && playerAim.isKnife)
             {
                 int damage = 10;
@@ -86,7 +87,8 @@ public class Enemy : MonoBehaviour
                 {
                     damage *= 2;
                 }
-              //  Debug.Log(reload.gameObject);
+
+                //  Debug.Log(reload.gameObject);
                 TakeDamage(damage);
                 DamagePopup.Create(transform.position, damage, isCrit);
             }
@@ -98,38 +100,36 @@ public class Enemy : MonoBehaviour
                 {
                     damage *= 2;
                 }
-              //  Debug.Log(reload.gameObject);
+
+                //  Debug.Log(reload.gameObject);
                 TakeDamage(damage);
                 DamagePopup.Create(transform.position, damage, isCrit);
             }
-            
         }
-   
     }
+
     private void Update()
     {
-       // Debug.Log(EllisQ);
+        // Debug.Log(EllisQ);
         if (EllisQ > 0)
         {
             timer -= Time.deltaTime;
         }
+
         if (timer < 0)
         {
             timer = 2f;
             EllisQ = 0;
         }
     }
+
     private void OnTriggerStay2D(Collider2D reload)
     {
-
-
         if (reload.gameObject.CompareTag("EllisQ"))
         {
-           // Debug.Log(reload.gameObject);
+            // Debug.Log(reload.gameObject);
 
             int damage = 5;
-
-
 
 
             if (!playerAim.hitted && EllisQ == 0 && ellis.QStack < 5)
@@ -139,19 +139,13 @@ public class Enemy : MonoBehaviour
                 {
                     if (ellis.QStack < 5)
                     {
-                       
                         ellis.QStack++;
                         EllisQ = 2;
                         TakeDamage(damage);
                         DamagePopup.Create(transform.position, damage, false);
                     }
-
-
                 }
-
             }
-           
-
         }
 
         if (reload.gameObject.tag == "Player" && !isAttacking)
@@ -160,6 +154,7 @@ public class Enemy : MonoBehaviour
             StartCoroutine(Attack());
         }
     }
+
     private void OnTriggerExit2D(Collider2D reload)
     {
         if (reload.gameObject.tag == "Player")
@@ -167,6 +162,7 @@ public class Enemy : MonoBehaviour
             playernotnull = false;
         }
     }
+
     void Die()
     {
         roomWhereIsEnemy.enemies.Remove(this);
@@ -174,17 +170,17 @@ public class Enemy : MonoBehaviour
         {
             playerAim.swordPickedUp = true;
             swordSprite.SetActive(true);
-            Destroy(swordSprite,5f);
+            Destroy(swordSprite, 5f);
         }
+
         dieSprite.transform.position = transform.position;
         aIPath.canMove = false;
         dieSprite.SetActive(true);
         spriteKirisi.SetActive(false);
         enemyList.Remove(this);
         Destroy(gameObject);
-        
-       
     }
+
     IEnumerator Attack()
     {
         isAttacking = true;
@@ -193,14 +189,20 @@ public class Enemy : MonoBehaviour
         // aIPath.canMove = true;
         if (playernotnull)
         {
-            DamagePopup.Create(ellis.transform.position,10,false);
-            ellis.health -= 10;
+            if (isMiniBoss)
+            {
+                DamagePopup.Create(ellis.transform.position, 20, false);
+                ellis.health -= 20;
+            }
+            else
+            {
+                DamagePopup.Create(ellis.transform.position, 10, false);
+                ellis.health -= 10;
+            }
+
+            ellis.GetComponent<Animator>().SetTrigger("EllisInjure");
         }
-        if (playernotnull && isMiniBoss)
-        {
-            DamagePopup.Create(ellis.transform.position, 20, false);
-            ellis.health -= 20;
-        }
+
         yield return new WaitForSeconds(1f);
 
         isAttacking = false;
